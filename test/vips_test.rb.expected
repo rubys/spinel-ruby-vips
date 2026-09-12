@@ -1,0 +1,26 @@
+jpg bytes: 12794
+png bytes: 4282
+new_from_buffer jpg: 640x640 bands=3 alpha=false size=[640, 640]
+new_from_buffer png: 64x64 bands=4 alpha=true size=[64, 64]
+new_from_file jpg: 640x640 bands=3 alpha=false size=[640, 640]
+thumbnail_buffer 512 down: 512x512 bands=3 alpha=false size=[512, 512]
+thumbnail_buffer 512 down (64px source, not enlarged): 64x64 bands=4 alpha=true size=[64, 64]
+thumbnail_buffer 128 both (enlarged): 128x128 bands=4 alpha=true size=[128, 128]
+thumbnail_buffer 100x50 down (fits within): 50x50 bands=3 alpha=false size=[50, 50]
+png out: 68449 bytes, magic [137, 80, 78, 71]
+webp out: 2930 bytes, magic RIFF WEBP
+jpg out: 1069 bytes, magic [255, 216]
+re-read png out: 512x512 bands=3 alpha=false size=[512, 512]
+re-read webp out: 512x512 bands=3 alpha=false size=[512, 512]
+thumbnail_image 200: 200x200 bands=3 alpha=false size=[200, 200]
+thumbnail_image 200 then 50: 50x50 bands=3 alpha=false size=[50, 50]
+write_to_file: 2930 bytes
+read back file: 512x512 bands=3 alpha=false size=[512, 512]
+find_load jpg: VipsForeignLoadJpegFile
+find_load png: VipsForeignLoadPngFile
+find_load_buffer webp: VipsForeignLoadWebpBuffer
+find_load_buffer junk: nil
+Vips::Error: raised
+Vips::Error on bad suffix: raised
+jpg still loads under block_untrusted: 640x640 bands=3 alpha=false size=[640, 640]
+LIBRARY_VERSION is a version: true

@@ -1,0 +1,10 @@
+[package]
+name = "ruby-vips"
+version = "0.1.0"
+
+# NAMED, not globbed (spinel-bcrypt's rule): a .c no entry reaches is
+# warned about and skipped, so a file added later surfaces here rather
+# than as an undefined symbol at link.
+sources = ["sp_vips.c"]
+
+# published repos are conventionally named spinel-ruby-vips
