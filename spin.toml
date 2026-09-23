@@ -1,6 +1,6 @@
 [package]
 name = "ruby-vips"
-version = "0.1.0"
+version = "0.2.0"
 
 # NAMED, not globbed (spinel-bcrypt's rule): a .c no entry reaches is
 # warned about and skipped, so a file added later surfaces here rather

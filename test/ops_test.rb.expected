@@ -1,0 +1,13 @@
+black: 8x8 bands=1 format=:uchar
+add(128): format=:ushort
+cast(uchar): format=:uchar
+png: 284 bytes, reads back 8x8 bands=1, loader VipsForeignLoadPngBuffer
+gif: 67 bytes, reads back 8x8 bands=4, loader VipsForeignLoadNsgifBuffer
+jpg: 503 bytes, reads back 8x8 bands=1, loader VipsForeignLoadJpegBuffer
+tif: 274 bytes, reads back 8x8 bands=1, loader VipsForeignLoadTiffBuffer
+webp: 256 bytes, reads back 8x8 bands=3, loader VipsForeignLoadWebpBuffer
+pngload: 64x64 bands=4
+public_send(:jpegload): 640x640 bands=3
+pngload of a missing file: Vips::Error
+blocked vipsload: "vipsload: operation is blocked"
+cast to an unknown format: raised
