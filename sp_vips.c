@@ -68,6 +68,12 @@ int vips_thumbnail_image(VipsImage *in, VipsImage **out, int width, ...);
 int vips_black(VipsImage **out, int width, int height, ...);
 int vips_add(VipsImage *left, VipsImage *right, VipsImage **out, ...);
 int vips_cast(VipsImage *in, VipsImage **out, int format, ...);
+typedef struct _VipsArrayDouble VipsArrayDouble;
+VipsArrayDouble *vips_array_double_new(const double *array, int n);
+int vips_flatten(VipsImage *in, VipsImage **out, ...);
+int vips_resize(VipsImage *in, VipsImage **out, double scale, ...);
+int vips_insert(VipsImage *main, VipsImage *sub, VipsImage **out, int x,
+		int y, ...);
 int vips_call(const char *operation_name, ...);
 int vips_image_write_to_buffer(VipsImage *in, const char *suffix,
 			       void **buf, size_t *size, ...);
@@ -353,6 +359,87 @@ sp_VipsImage *sp_VipsImage_cast(sp_VipsImage *self, sp_int format)
 	if (vips_cast(self->img, &img, (int)format, NULL))
 		img = NULL;
 	return sp_vips_wrap(self->cls_id, img);
+}
+
+/* Numbers arrive as "255 255 255": a native_method cannot take an Array. */
+#define SP_VIPS_MAX_VECTOR 64
+static VipsArrayDouble *sp_vips_vector(const char *spec)
+{
+	double v[SP_VIPS_MAX_VECTOR];
+	int n = 0;
+	const char *p = spec;
+	char *end;
+	while (n < SP_VIPS_MAX_VECTOR) {
+		double d = strtod(p, &end);
+		if (end == p)
+			break;
+		v[n++] = d;
+		p = end;
+	}
+	if (n == 0) {
+		snprintf(sp_vips_err_buf, sizeof(sp_vips_err_buf),
+			 "vector: no elements\n");
+		return NULL;
+	}
+	return vips_array_double_new(v, n);
+}
+
+/* Not sp_vips_wrap(NULL): that would overwrite the message already set. */
+static sp_VipsImage *sp_vips_refused(sp_int cls_id)
+{
+	return sp_VipsImage_new(cls_id);
+}
+
+/* max_alpha is left unset when not given: libvips' default is 65535 for 16-bit. */
+sp_VipsImage *sp_VipsImage_flatten(sp_VipsImage *self, const char *bg,
+				   double max_alpha)
+{
+	VipsArrayDouble *v = sp_vips_vector(bg);
+	VipsImage *img = NULL;
+	int rc;
+	if (!v)
+		return sp_vips_refused(self->cls_id);
+	if (max_alpha >= 0)
+		rc = vips_flatten(self->img, &img, "background", v,
+				  "max_alpha", max_alpha, NULL);
+	else
+		rc = vips_flatten(self->img, &img, "background", v, NULL);
+	vips_area_unref(v);
+	return sp_vips_wrap(self->cls_id, rc ? NULL : img);
+}
+
+sp_VipsImage *sp_VipsImage_resize(sp_VipsImage *self, double scale,
+				  double vscale, sp_int kernel)
+{
+	VipsImage *img = NULL;
+	if (vips_resize(self->img, &img, scale, "vscale", vscale, "kernel",
+			(int)kernel, NULL))
+		img = NULL;
+	return sp_vips_wrap(self->cls_id, img);
+}
+
+sp_VipsImage *sp_VipsImage_insert(sp_VipsImage *self, sp_RbVal subv,
+				  sp_int x, sp_int y, sp_int expand,
+				  const char *bg)
+{
+	sp_VipsImage *sub;
+	VipsArrayDouble *v;
+	VipsImage *img = NULL;
+	int rc;
+	if (subv.tag != SP_TAG_OBJ || !subv.v.p ||
+	    subv.cls_id != (int)self->cls_id ||
+	    !((sp_VipsImage *)subv.v.p)->img) {
+		snprintf(sp_vips_err_buf, sizeof(sp_vips_err_buf),
+			 "insert: sub is not an image\n");
+		return sp_vips_refused(self->cls_id);
+	}
+	sub = (sp_VipsImage *)subv.v.p;
+	if (!(v = sp_vips_vector(bg)))
+		return sp_vips_refused(self->cls_id);
+	rc = vips_insert(self->img, sub->img, &img, (int)x, (int)y, "expand",
+			 expand ? 1 : 0, "background", v, NULL);
+	vips_area_unref(v);
+	return sp_vips_wrap(self->cls_id, rc ? NULL : img);
 }
 
 sp_int sp_VipsImage_width(sp_VipsImage *self)

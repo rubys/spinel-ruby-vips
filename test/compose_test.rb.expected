@@ -1,0 +1,24 @@
+alpha8: 8x8 bands=4 format=:uchar
+flatten white: 8x8 bands=3 format=:uchar
+flatten white row0: 248,236,230 227,177,152 200,100,50
+flatten default row0: 24,12,6 99,49,24 200,100,50
+flatten 128 row0: 136,124,118 163,114,89 200,100,50
+flatten max_alpha 510 row0: 251,245,242 227,177,152
+flatten RGB onto a 3-vector: "linear: vector must have 1 or 2 elements"
+flatten with a 2-vector: "linear: vector must have 1 or 3 elements"
+resize 0.5: 32x32 bands=4 format=:uchar
+resize 0.25 vscale 0.5: 16x32 bands=4 format=:uchar
+resize 1.5: 96x96 bands=4 format=:uchar
+resize 0.5 png bytes: 1627
+resize 0.5 nearest png bytes: 1547
+insert: 8x8 bands=1 format=:uchar
+insert row0: 10 200 200 10
+insert expand: 9x8 bands=1 format=:uchar
+insert expand row0: 10 200 200
+insert expand row7: 10 10 99
+insert 4 bands into 3: "insert: images must have the same number of bands, or one must be single-band"
+logo: 144x144 bands=3 format=:uchar
+card: 400x400 bands=3 format=:uchar
+logo resized: 80x80 bands=3 format=:uchar
+combined: 400x400 bands=3 format=:uchar
+combined png bytes: 48310
