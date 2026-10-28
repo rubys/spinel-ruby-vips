@@ -21,6 +21,11 @@ image.thumbnail_image(192, height: 192, size: :down).write_to_file("small.png")
 # an image made in code; nothing is computed until it is written
 png = Vips::Image.black(8, 8).add(128).cast("uchar").write_to_buffer(".png")
 
+# a logo onto a card, as lobsters' StoryImage does
+image = image.flatten(background: [255, 255, 255]) if image.bands > 3
+logo = logo.resize(0.5)                           # also vscale:, kernel: :nearest
+image.insert(logo, 0, image.height - logo.height) # also expand:, background:
+
 Vips::Image.pngload("avatar.png")                 # a loader, by name
 Vips::Image.public_send(:openslideload, path)     # ... also through public_send
 
@@ -92,15 +97,20 @@ libvips has to be linkable at build time and loadable at run time:
   (`new_from_buffer`, `new_from_file`, and the file loaders by name —
   `jpegload`, `openslideload`, … — every loader whose only required
   argument is the filename), `thumbnail_buffer` / `thumbnail_image`,
-  `black`, `add` with a number, `cast`, header reads (`width`, `height`,
-  `bands`, `has_alpha?`, `format`, `size`), and encoding. No crop,
-  rotate, composite, or arithmetic between two images.
+  `black`, `add` with a number, `cast`, `flatten` (`background:`,
+  `max_alpha:`), `resize` (`vscale:`, `kernel:`), `insert` (`expand:`,
+  `background:`), header reads (`width`, `height`, `bands`, `has_alpha?`,
+  `format`, `size`), and encoding. No crop, rotate, composite, or
+  arithmetic between two images.
 - A named loader this libvips was built without answers libvips' own
   `VipsOperation: class "…" not found`, as in the gem.
 - `write_to_buffer` / `write_to_file` take libvips' own suffix syntax
   (`".webp[Q=80]"`); the gem's keyword form (`Q: 80`) is not provided.
   Loaders take no keyword options either (the gem's `access:`, `page:`,
   …); `new_from_buffer`'s option string is passed to the loader.
+- A vector argument (`flatten`'s and `insert`'s `background:`) is an
+  Array of numbers or one number, as in the gem. It crosses into C as a
+  string of numbers, since a `native_method` cannot take an Array.
 - `Vips.vips_foreign_find_load_buffer(data, size)` keeps the gem's raw
   two-argument C signature.
 
@@ -121,7 +131,8 @@ count to compare), so it has no `_test` suffix and the oracle skips it.
 
 Fixtures: `test/moon.jpg` is once-campfire's test fixture (MIT);
 `test/moon64.png` is its 64px thumbnail with an alpha band, made with
-the gem.
+the gem; `test/alpha8.png` is an 8x8 sRGB image with alpha rising left
+to right, made with the gem.
 
 ## License
 

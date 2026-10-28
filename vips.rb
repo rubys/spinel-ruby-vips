@@ -63,6 +63,9 @@ module VipsImagePackage
   native_method :__black,            [:int, :int], :self,                "sp_VipsImage_black"
   native_method :__add_const,        [:float], :self,                    "sp_VipsImage_add_const"
   native_method :__cast,             [:int], :self,                      "sp_VipsImage_cast"
+  native_method :__flatten,          [:string, :float], :self,           "sp_VipsImage_flatten"
+  native_method :__resize,           [:float, :float, :int], :self,      "sp_VipsImage_resize"
+  native_method :__insert,           [:any, :int, :int, :int, :string], :self, "sp_VipsImage_insert"
   native_method :__format,           [], :int,                           "sp_VipsImage_format"
   native_method :__encode,           [:string], :int,                    "sp_VipsImage_encode"
   native_method :__write_to_file,    [:string], :int,                    "sp_VipsImage_write_to_file"
@@ -123,6 +126,21 @@ module Vips
     else
       0
     end
+  end
+
+  # VipsKernel, in enum order.
+  KERNELS = %w[nearest linear cubic mitchell lanczos2 lanczos3 mks2013 mks2021]
+
+  def self.kernel_code(kernel)
+    code = KERNELS.index(kernel.to_s)
+    raise Error, "resize: no kernel \"#{kernel}\"\n" if code.nil?
+    code
+  end
+
+  # A number stands for a one-element vector, as the gem's ArrayDouble has it.
+  def self.vector_spec(value)
+    values = value.is_a?(Array) ? value : [value]
+    values.map { |v| v.to_f.to_s }.join(" ")
   end
 
   def self.band_format_code(format)
@@ -198,6 +216,23 @@ module Vips
 
     def cast(format)
       Image.checked(@ref.__cast(Vips.band_format_code(format)))
+    end
+
+    def __ref
+      @ref
+    end
+
+    def flatten(background: 0, max_alpha: nil)
+      Image.checked(@ref.__flatten(Vips.vector_spec(background), max_alpha.nil? ? -1.0 : max_alpha.to_f))
+    end
+
+    def resize(scale, vscale: nil, kernel: :lanczos3)
+      v = vscale.nil? ? scale : vscale
+      Image.checked(@ref.__resize(scale.to_f, v.to_f, Vips.kernel_code(kernel)))
+    end
+
+    def insert(sub, x, y, expand: false, background: 0)
+      Image.checked(@ref.__insert(sub.__ref, x, y, expand ? 1 : 0, Vips.vector_spec(background)))
     end
 
     # The gem answers the band format as a Symbol: :uchar, :ushort, ...
